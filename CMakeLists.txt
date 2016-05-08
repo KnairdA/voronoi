@@ -11,7 +11,12 @@ include_directories(
 )
 
 add_executable(
-	test
-		test.cc
+	example
+		example.cc
 		src/imgen.cc
+)
+
+target_link_libraries(
+	example
+		m
 )
