@@ -3,14 +3,18 @@
 #include <cmath>
 #include <algorithm>
 
-double metric(std::size_t refX, std::size_t refY, std::size_t x, std::size_t y) {
+double euclidean_metric(int refX, int refY, int x, int y) {
 	return std::sqrt(
-		(refX - x)*(refX - x) + (refY - y)*(refY - y)
+		std::pow(refX - x, 2) + std::pow(refY - y, 2)
 	);
 }
 
+int manhattan_metric(int refX, int refY, int x, int y) {
+	return std::abs(refX - x) + std::abs(refY - y);
+}
+
 int main(int, char*[]) {
-	using refpos = std::tuple<std::size_t, std::size_t, imgen::color>;
+	using refpos = std::tuple<int, int, imgen::color>;
 
 	std::array<refpos, 5> ref{
 		refpos(100, 50,  imgen::color(255, 0,   0  )),
@@ -29,8 +33,8 @@ int main(int, char*[]) {
 				ref.begin(),
 				ref.end(),
 				[x, y](const refpos& a, const refpos& b) -> bool {
-					return   metric(std::get<0>(a), std::get<1>(a), x, y)
-					       < metric(std::get<0>(b), std::get<1>(b), x, y);
+					return   manhattan_metric(std::get<0>(a), std::get<1>(a), x, y)
+					       < manhattan_metric(std::get<0>(b), std::get<1>(b), x, y);
 				}
 			);
 
