@@ -14,6 +14,8 @@ add_executable(
 	example
 		example.cc
 		src/imgen.cc
+		src/color.cc
+		src/ppm_pixel_stream.cc
 )
 
 target_link_libraries(
