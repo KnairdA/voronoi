@@ -2,8 +2,9 @@
 
 #include <cmath>
 #include <algorithm>
+#include <thread>
 
-int minkowski_metric(float p, int refX, int refY, int x, int y) {
+int minkowski_metric(double p, int refX, int refY, int x, int y) {
 	return static_cast<int>(std::nearbyint(
 		std::pow(
 			std::pow(std::abs(refX - x), p) + std::pow(std::abs(refY - y), p),
@@ -20,8 +21,12 @@ int euclidean_metric(int refX, int refY, int x, int y) {
 	return minkowski_metric(2, refX, refY, x, y);
 }
 
-int main(int, char*[]) {
-	std::array<imgen::colored_vector, 9> ref{
+void generate_minkowski_voronoi(
+	const double lower,
+	const double upper,
+	const double epsilon
+) {
+	constexpr std::array<imgen::colored_vector, 9> ref{
 		imgen::colored_vector{   0,    0, imgen::red()    },
 		imgen::colored_vector{ 240,  200, imgen::green()  },
 		imgen::colored_vector{-100,  230, imgen::blue()   },
@@ -33,9 +38,9 @@ int main(int, char*[]) {
 		imgen::colored_vector{-240,  -20, imgen::olive()  }
 	};
 
-	for ( float p = 0.6; p < 2.0; p = p + 0.005 ) {
+	for ( double p = lower; p < upper; p = p + epsilon ) {
 		imgen::write_ppm(
-			"vonoroi_" + std::to_string(p) + ".ppm",
+			"voronoi_" + std::to_string(p) + ".ppm",
 			512,
 			512,
 			[&ref, p](std::ptrdiff_t x, std::ptrdiff_t y) -> imgen::color {
@@ -65,4 +70,16 @@ int main(int, char*[]) {
 			}
 		);
 	}
+}
+
+int main(int, char*[]) {
+	std::thread worker1([](){ generate_minkowski_voronoi(0.8,   1.1, 0.002); });
+	std::thread worker2([](){ generate_minkowski_voronoi(1.102, 1.4, 0.002); });
+	std::thread worker3([](){ generate_minkowski_voronoi(1.402, 1.7, 0.002); });
+	std::thread worker4([](){ generate_minkowski_voronoi(1.702, 2.0, 0.002); });
+
+	worker1.join();
+	worker2.join();
+	worker3.join();
+	worker4.join();
 }
