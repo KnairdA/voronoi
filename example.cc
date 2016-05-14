@@ -3,7 +3,7 @@
 #include <cmath>
 #include <algorithm>
 
-int minkowski_metric(double p, int refX, int refY, int x, int y) {
+int minkowski_metric(float p, int refX, int refY, int x, int y) {
 	return static_cast<int>(std::nearbyint(
 		std::pow(
 			std::pow(std::abs(refX - x), p) + std::pow(std::abs(refY - y), p),
@@ -12,48 +12,57 @@ int minkowski_metric(double p, int refX, int refY, int x, int y) {
 	));
 }
 
-int euclidean_metric(int refX, int refY, int x, int y) {
-	return minkowski_metric(2, refX, refY, x, y);
-}
-
 int manhattan_metric(int refX, int refY, int x, int y) {
 	return minkowski_metric(1, refX, refY, x, y);
 }
 
-int main(int, char*[]) {
-	using refpos = std::tuple<int, int, imgen::color>;
+int euclidean_metric(int refX, int refY, int x, int y) {
+	return minkowski_metric(2, refX, refY, x, y);
+}
 
-	std::array<refpos, 9> ref{
-		refpos( 0,    0,   imgen::color(255, 0,   0   )),
-		refpos( 100,  100, imgen::color(0,   255, 0   )),
-		refpos(-100,  100, imgen::color(0,   0,   255 )),
-		refpos( 100, -100, imgen::color(255, 255, 0   )),
-		refpos(-100, -100, imgen::color(0,   255, 255 )),
-		refpos( 200,  200, imgen::color(255, 0,   0   )),
-		refpos(-200,  200, imgen::color(0,   255, 0   )),
-		refpos( 200, -200, imgen::color(0,   255, 255 )),
-		refpos(-200, -200, imgen::color(255, 255, 0   ))
+int main(int, char*[]) {
+	std::array<imgen::colored_vector, 9> ref{
+		imgen::colored_vector{   0,    0, imgen::red()    },
+		imgen::colored_vector{ 240,  200, imgen::green()  },
+		imgen::colored_vector{-100,  230, imgen::blue()   },
+		imgen::colored_vector{ 120, -100, imgen::yellow() },
+		imgen::colored_vector{ -42, -200, imgen::cyan()   },
+		imgen::colored_vector{ 120,   40, imgen::magenta()},
+		imgen::colored_vector{-150,   50, imgen::silver() },
+		imgen::colored_vector{  60, -128, imgen::maroon() },
+		imgen::colored_vector{-240,  -20, imgen::olive()  }
 	};
 
-	imgen::write_ppm(
-		"test.ppm",
-		512,
-		512,
-		[&ref](std::ptrdiff_t x, std::ptrdiff_t y) -> imgen::color {
-			const refpos& nearest = *std::min_element(
-				ref.begin(),
-				ref.end(),
-				[x, y](const refpos& a, const refpos& b) -> bool {
-					return   euclidean_metric(std::get<0>(a), std::get<1>(a), x, y)
-					       < euclidean_metric(std::get<0>(b), std::get<1>(b), x, y);
-				}
-			);
+	for ( float p = 0.6; p < 2.0; p = p + 0.005 ) {
+		imgen::write_ppm(
+			"vonoroi_" + std::to_string(p) + ".ppm",
+			512,
+			512,
+			[&ref, p](std::ptrdiff_t x, std::ptrdiff_t y) -> imgen::color {
+				std::array<int, 9> distances;
 
-			if ( euclidean_metric(std::get<0>(nearest), std::get<1>(nearest), x, y) <= 5 ) {
-				return imgen::color(0, 0, 0);
-			} else {
-				return std::get<2>(nearest);
+				std::transform(
+					ref.begin(),
+					ref.end(),
+					distances.begin(),
+					[x, y, p](const imgen::colored_vector& pos) {
+					return minkowski_metric(p, std::get<0>(pos), std::get<1>(pos), x, y);
+				});
+
+				const auto& minimal_distance = std::min_element(
+					distances.begin(),
+					distances.end()
+				);
+				const imgen::colored_vector& nearest = ref[
+					std::distance(distances.begin(), minimal_distance)
+				];
+
+				if ( *minimal_distance <= 5 ) {
+					return imgen::color(0, 0, 0);
+				} else {
+					return std::get<2>(nearest);
+				}
 			}
-		}
-	);
+		);
+	}
 }
