@@ -1,8 +1,9 @@
 #include <imgen.h>
 
 #include <cmath>
-#include <algorithm>
 #include <thread>
+#include <vector>
+#include <algorithm>
 
 int minkowski_metric(double p, int refX, int refY, int x, int y) {
 	return static_cast<int>(std::nearbyint(
@@ -38,7 +39,7 @@ void generate_minkowski_voronoi(
 		imgen::colored_vector{-240,  -20, imgen::olive()  }
 	};
 
-	for ( double p = lower; p < upper; p = p + epsilon ) {
+	for ( double p = lower; p < upper + epsilon; p = p + epsilon ) {
 		imgen::write_ppm(
 			"voronoi_" + std::to_string(p) + ".ppm",
 			512,
@@ -72,14 +73,44 @@ void generate_minkowski_voronoi(
 	}
 }
 
-int main(int, char*[]) {
-	std::thread worker1([](){ generate_minkowski_voronoi(0.8,   1.1, 0.002); });
-	std::thread worker2([](){ generate_minkowski_voronoi(1.102, 1.4, 0.002); });
-	std::thread worker3([](){ generate_minkowski_voronoi(1.402, 1.7, 0.002); });
-	std::thread worker4([](){ generate_minkowski_voronoi(1.702, 2.0, 0.002); });
+void generate_parallel_minkowski_voronoi(
+	const unsigned int thread_count,
+	const double       lower,
+	const double       upper,
+	const double       epsilon
+) {
+	std::vector<std::thread> threads;
 
-	worker1.join();
-	worker2.join();
-	worker3.join();
-	worker4.join();
+	const double step = ( ( upper - lower ) / thread_count ) - epsilon;
+	double offset     = lower;
+
+	threads.emplace_back([offset, step, epsilon]{
+		generate_minkowski_voronoi(
+			offset,
+			offset + step + epsilon,
+			epsilon
+		);
+	});
+
+	offset += step + epsilon + epsilon;
+
+	while ( threads.size() < thread_count ) {
+		threads.emplace_back([offset, step, epsilon]{
+			generate_minkowski_voronoi(
+				offset,
+				offset + step,
+				epsilon
+			);
+		});
+
+		offset += step + epsilon;
+	}
+
+	for ( auto& thread : threads ) {
+		thread.join();
+	}
+}
+
+int main(int, char*[]) {
+	generate_parallel_minkowski_voronoi(4, 1.0, 16.0, 0.05);
 }
