@@ -64,7 +64,7 @@ void generate_minkowski_voronoi(
 				];
 
 				if ( *minimal_distance <= 5 ) {
-					return imgen::color(0, 0, 0);
+					return imgen::black();
 				} else {
 					return std::get<2>(nearest);
 				}

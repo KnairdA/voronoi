@@ -7,6 +7,8 @@ namespace imgen {
 
 using color = std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>;
 
+constexpr color black()   { return color{  0,   0,   0}; }
+constexpr color white()   { return color{255, 255, 255}; }
 constexpr color red()     { return color{255,   0,   0}; }
 constexpr color lime()    { return color{  0, 255,   0}; }
 constexpr color blue()    { return color{  0,   0, 255}; }

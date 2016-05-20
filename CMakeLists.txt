@@ -17,8 +17,20 @@ add_executable(
 		src/ppm_pixel_stream.cc
 )
 
+add_executable(
+	unit_circle
+		unit_circle.cc
+		src/imgen.cc
+		src/ppm_pixel_stream.cc
+)
+
 target_link_libraries(
 	example
 		m
 		pthread
+)
+
+target_link_libraries(
+	unit_circle
+		m
 )
