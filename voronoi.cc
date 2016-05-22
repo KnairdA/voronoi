@@ -6,9 +6,9 @@
 #include <algorithm>
 
 double minkowski_metric(
-	const double         p,
-	const imgen::vector& a,
-	const imgen::vector& b
+	const double        p,
+	const imgen::vector a,
+	const imgen::vector b
 ) {
 	return std::pow(
 		  std::pow(std::abs(std::get<0>(a) - std::get<0>(b)), p)
@@ -17,16 +17,11 @@ double minkowski_metric(
 	);
 }
 
-double manhattan_metric(const imgen::vector& a, const imgen::vector& b) {
-	return minkowski_metric(1, a, b);
-}
-
-double euclidean_metric(const imgen::vector& a, const imgen::vector& b) {
-	return minkowski_metric(2, a, b);
-}
-
-void generate_minkowski_voronoi(const double p) {
-	constexpr std::array<imgen::colored_vector, 9> ref{
+std::pair<double, imgen::colored_vector> get_distance_to_nearest(
+	const std::function<double(imgen::vector, imgen::vector)>& metric,
+	const imgen::vector a
+) {
+	constexpr std::array<imgen::colored_vector, 9> reference_vectors{
 		imgen::colored_vector{   0,    0, imgen::red()                },
 		imgen::colored_vector{ 240,  200, imgen::color{220, 220, 220} },
 		imgen::colored_vector{-100,  230, imgen::color{ 94, 113, 106} },
@@ -38,37 +33,44 @@ void generate_minkowski_voronoi(const double p) {
 		imgen::colored_vector{-240,  -20, imgen::color{ 54,  69,  79} }
 	};
 
+	std::array<double, 9> distances;
+
+	std::transform(
+		reference_vectors.begin(),
+		reference_vectors.end(),
+		distances.begin(),
+		[&a, &metric](const imgen::colored_vector b) {
+			return metric(a, imgen::vector{std::get<0>(b), std::get<1>(b)});
+		}
+	);
+
+	const auto& minimal_distance{
+		std::min_element(distances.begin(), distances.end())};
+	const imgen::colored_vector& nearest{
+		reference_vectors[std::distance(distances.begin(), minimal_distance)]};
+
+	return std::make_pair(*minimal_distance, nearest);
+}
+
+void generate_minkowski_voronoi(const double p) {
+	const auto metric{[p](const imgen::vector a, const imgen::vector b) -> double {
+		return minkowski_metric(p, a, b);
+	}};
+
 	imgen::write_ppm(
 		"voronoi_" + std::to_string(p) + ".ppm",
 		512,
 		512,
-		[&ref, p](std::ptrdiff_t x, std::ptrdiff_t y) -> imgen::color {
-			std::array<double, 9> distances;
-
-			std::transform(
-				ref.begin(),
-				ref.end(),
-				distances.begin(),
-				[x, y, p](const imgen::colored_vector& pos) {
-				return minkowski_metric(
-					p,
-					imgen::vector{std::get<0>(pos), std::get<1>(pos)},
-					imgen::vector{x, y}
-				);
-			});
-
-			const auto& minimal_distance = std::min_element(
-				distances.begin(),
-				distances.end()
+		[&metric](std::ptrdiff_t x, std::ptrdiff_t y) -> imgen::color {
+			const auto& nearest = get_distance_to_nearest(
+				metric,
+				imgen::vector{x, y}
 			);
-			const imgen::colored_vector& nearest = ref[
-				std::distance(distances.begin(), minimal_distance)
-			];
 
-			if ( *minimal_distance <= 5.0 ) {
+			if ( nearest.first <= 5.0 ) {
 				return imgen::black();
 			} else {
-				return std::get<2>(nearest);
+				return std::get<2>(nearest.second);
 			}
 		}
 	);
