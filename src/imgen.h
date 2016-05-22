@@ -7,7 +7,8 @@
 
 namespace imgen {
 
-using colored_vector = std::tuple<int, int, color>;
+using vector         = std::tuple<std::ptrdiff_t, std::ptrdiff_t>;
+using colored_vector = std::tuple<std::ptrdiff_t, std::ptrdiff_t, color>;
 
 void write_ppm(
 	const std::string&                                   path,

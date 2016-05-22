@@ -4,13 +4,12 @@
 #include <vector>
 #include <algorithm>
 
-int p_norm(double p, int x, int y) {
-	return static_cast<int>(std::nearbyint(
-		std::pow(
-			std::pow(std::abs(x), p) + std::pow(std::abs(y), p),
-			1.0 / p
-		)
-	));
+double p_norm(double p, int x, int y) {
+	return std::pow(
+		  std::pow(std::abs(x), p)
+		+ std::pow(std::abs(y), p),
+		1.0 / p
+	);
 }
 
 void generate_p_unit_circle(
@@ -24,7 +23,7 @@ void generate_p_unit_circle(
 			128,
 			128,
 			[p](std::ptrdiff_t x, std::ptrdiff_t y) -> imgen::color {
-				if ( p_norm(p, x, y) <= 32 ) {
+				if ( p_norm(p, x, y) <= 32.0 ) {
 					return imgen::black();
 				} else {
 					return imgen::white();

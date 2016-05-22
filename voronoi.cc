@@ -5,33 +5,24 @@
 #include <vector>
 #include <algorithm>
 
-std::ptrdiff_t minkowski_metric(
-	const double p,
-	const std::ptrdiff_t refX, const std::ptrdiff_t refY,
-	const std::ptrdiff_t x,    const std::ptrdiff_t y
+double minkowski_metric(
+	const double         p,
+	const imgen::vector& a,
+	const imgen::vector& b
 ) {
-	return static_cast<std::ptrdiff_t>(
-		std::nearbyint(
-			std::pow(
-				std::pow(std::abs(refX - x), p) + std::pow(std::abs(refY - y), p),
-				1.0 / p
-			)
-		)
+	return std::pow(
+		  std::pow(std::abs(std::get<0>(a) - std::get<0>(b)), p)
+		+ std::pow(std::abs(std::get<1>(a) - std::get<1>(b)), p),
+		1.0 / p
 	);
 }
 
-std::ptrdiff_t manhattan_metric(
-	const std::ptrdiff_t refX, const std::ptrdiff_t refY,
-	const std::ptrdiff_t x,    const std::ptrdiff_t y
-) {
-	return minkowski_metric(1, refX, refY, x, y);
+double manhattan_metric(const imgen::vector& a, const imgen::vector& b) {
+	return minkowski_metric(1, a, b);
 }
 
-std::ptrdiff_t euclidean_metric(
-	const std::ptrdiff_t refX, const std::ptrdiff_t refY,
-	const std::ptrdiff_t x,    const std::ptrdiff_t y
-) {
-	return minkowski_metric(2, refX, refY, x, y);
+double euclidean_metric(const imgen::vector& a, const imgen::vector& b) {
+	return minkowski_metric(2, a, b);
 }
 
 void generate_minkowski_voronoi(const double p) {
@@ -52,14 +43,18 @@ void generate_minkowski_voronoi(const double p) {
 		512,
 		512,
 		[&ref, p](std::ptrdiff_t x, std::ptrdiff_t y) -> imgen::color {
-			std::array<std::ptrdiff_t, 9> distances;
+			std::array<double, 9> distances;
 
 			std::transform(
 				ref.begin(),
 				ref.end(),
 				distances.begin(),
 				[x, y, p](const imgen::colored_vector& pos) {
-				return minkowski_metric(p, std::get<0>(pos), std::get<1>(pos), x, y);
+				return minkowski_metric(
+					p,
+					imgen::vector{std::get<0>(pos), std::get<1>(pos)},
+					imgen::vector{x, y}
+				);
 			});
 
 			const auto& minimal_distance = std::min_element(
@@ -70,7 +65,7 @@ void generate_minkowski_voronoi(const double p) {
 				std::distance(distances.begin(), minimal_distance)
 			];
 
-			if ( *minimal_distance <= 5 ) {
+			if ( *minimal_distance <= 5.0 ) {
 				return imgen::black();
 			} else {
 				return std::get<2>(nearest);
