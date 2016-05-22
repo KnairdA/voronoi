@@ -1,13 +1,15 @@
 #! /usr/bin/fish
 
-mkdir unit ^/dev/null
-cd unit
+mkdir unit_gif ^/dev/null
+cd unit_gif
 rm *.ppm *.gif ^/dev/null
 
 ../unit_circle
 
 for f in unit_circle_*
-	convert $f -annotate +75+120 (echo "p =" (echo $f | grep -o "[0-9].[0-9]\{2\}" | head -n 1)) $f
+	convert $f -annotate +75+120 (
+		echo "p =" (echo $f | grep -o "[0-9].[0-9]\{2\}" | head -n 1)
+	) $f
 end
 
 convert -delay 8 -loop 0 *.ppm circle.gif
