@@ -5,26 +5,38 @@
 #include <vector>
 #include <algorithm>
 
-int minkowski_metric(double p, int refX, int refY, int x, int y) {
-	return static_cast<int>(std::nearbyint(
-		std::pow(
-			std::pow(std::abs(refX - x), p) + std::pow(std::abs(refY - y), p),
-			1.0 / p
+std::ptrdiff_t minkowski_metric(
+	const double p,
+	const std::ptrdiff_t refX, const std::ptrdiff_t refY,
+	const std::ptrdiff_t x,    const std::ptrdiff_t y
+) {
+	return static_cast<std::ptrdiff_t>(
+		std::nearbyint(
+			std::pow(
+				std::pow(std::abs(refX - x), p) + std::pow(std::abs(refY - y), p),
+				1.0 / p
+			)
 		)
-	));
+	);
 }
 
-int manhattan_metric(int refX, int refY, int x, int y) {
+std::ptrdiff_t manhattan_metric(
+	const std::ptrdiff_t refX, const std::ptrdiff_t refY,
+	const std::ptrdiff_t x,    const std::ptrdiff_t y
+) {
 	return minkowski_metric(1, refX, refY, x, y);
 }
 
-int euclidean_metric(int refX, int refY, int x, int y) {
+std::ptrdiff_t euclidean_metric(
+	const std::ptrdiff_t refX, const std::ptrdiff_t refY,
+	const std::ptrdiff_t x,    const std::ptrdiff_t y
+) {
 	return minkowski_metric(2, refX, refY, x, y);
 }
 
 void generate_minkowski_voronoi(const double p) {
 	constexpr std::array<imgen::colored_vector, 9> ref{
-		imgen::colored_vector{   0,    0, imgen::red()    },
+		imgen::colored_vector{   0,    0, imgen::red()                },
 		imgen::colored_vector{ 240,  200, imgen::color{220, 220, 220} },
 		imgen::colored_vector{-100,  230, imgen::color{ 94, 113, 106} },
 		imgen::colored_vector{ 120, -100, imgen::color{140, 146, 172} },
@@ -40,7 +52,7 @@ void generate_minkowski_voronoi(const double p) {
 		512,
 		512,
 		[&ref, p](std::ptrdiff_t x, std::ptrdiff_t y) -> imgen::color {
-			std::array<int, 9> distances;
+			std::array<std::ptrdiff_t, 9> distances;
 
 			std::transform(
 				ref.begin(),

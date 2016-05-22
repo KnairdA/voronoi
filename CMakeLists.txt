@@ -11,8 +11,8 @@ include_directories(
 )
 
 add_executable(
-	example
-		example.cc
+	voronoi
+		voronoi.cc
 		src/imgen.cc
 		src/ppm_pixel_stream.cc
 )
@@ -25,7 +25,7 @@ add_executable(
 )
 
 target_link_libraries(
-	example
+	voronoi
 		m
 		pthread
 )
