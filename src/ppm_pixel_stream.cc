@@ -18,7 +18,6 @@ ppm_pixel_stream::ppm_pixel_stream(
 	const std::size_t  height
 ): stream_() {
 	this->stream_.open(path, std::ios::binary | std::ios::out);
-	this->stream_.sync_with_stdio(false);
 
 	this->stream_ << "P6\n" << width << " " << height << "\n255\n";
 }
